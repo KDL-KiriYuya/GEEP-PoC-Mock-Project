@@ -1,0 +1,7 @@
+# Development dependencies
+ruff==0.1.8
+black==23.12.1
+mypy==1.7.1
+
+# Type stubs for better type checking
+types-psycopg2==2.9.21.16
