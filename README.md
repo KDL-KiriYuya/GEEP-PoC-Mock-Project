@@ -5,7 +5,9 @@ A simple e-commerce site built with a monorepo structure using Next.js (frontend
 ## Features
 
 - 🔐 User authentication with JWT (login, register, logout)
-- 👤 User profile management (update email, username, full name)
+  - 4 pre-configured demo accounts
+  - Admin and regular user roles
+- � User profiole management (update email, username, full name)
 - 🔑 Password change functionality
 - 📜 Order history with detailed view
 - 🛍️ Product browsing with pagination
@@ -13,11 +15,13 @@ A simple e-commerce site built with a monorepo structure using Next.js (frontend
 - 📦 Order processing with stock validation
 - 💳 Dummy payment integration
 - 🐳 Docker Compose setup for easy deployment
+- �️ Adminer efor database management (web UI)
 - 🔄 Next.js Server Actions for API communication
 - 🎨 shadcn/ui components with Tailwind CSS
-- 🕐 Timezone support (Phnom Penh) with dayjs
-- 📝 Code formatting with Prettier (frontend) and Black/Ruff (backend)
+- � Tidmezone support (Phnom Penh) with dayjs
+- �  Code formatting with Prettier (frontend) and Black/Ruff (backend)
 - 🔍 Type safety with TypeScript (frontend) and mypy (backend)
+- 📚 Auto-generated API documentation (Swagger UI & ReDoc)
 
 ## Project Structure
 
@@ -102,9 +106,11 @@ docker-compose up -d
 This command will:
 - Pull the PostgreSQL 15 image (if not already available)
 - Build the FastAPI backend Docker image
+- Pull the Adminer image for database management
 - Start a PostgreSQL database container on port **5432**
-- Run the database initialization script (`init.sql`) to create tables and seed sample data
+- Run the database initialization script (`init.sql`) to create tables and seed 300 sample products
 - Start the FastAPI backend container on port **8000**
+- Start the Adminer database admin tool on port **8080**
 
 **Verify the services are running:**
 
@@ -139,23 +145,50 @@ Open a new terminal window, navigate to the `frontend` directory, and install de
 
 ```bash
 cd frontend
-npm install
+pnpm install
 ```
 
 Start the Next.js development server:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 The frontend will be available at **http://localhost:3000**
 
+**Quick Login:**
+- Go to http://localhost:3000/login
+- Username: `demo-user` or `admin`
+- Password: `password123`
+
 ### 4. Access the Application
 
 Open your browser and navigate to:
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:8000
-- **API Documentation:** http://localhost:8000/docs (Swagger UI)
+
+#### Frontend Application
+- **URL:** http://localhost:3000
+- **Login Page:** http://localhost:3000/login
+
+**Demo Accounts:**
+| Username | Password | Role |
+|----------|----------|------|
+| `admin` | `password123` | Administrator |
+| `demo-user` | `password123` | Regular User |
+| `john` | `password123` | Regular User |
+| `jane` | `password123` | Regular User |
+
+#### Backend API
+- **API Base URL:** http://localhost:8000
+- **Swagger UI:** http://localhost:8000/docs
+- **ReDoc:** http://localhost:8000/redoc
+
+#### Database Admin (Adminer)
+- **URL:** http://localhost:8080
+- **System:** `PostgreSQL`
+- **Server:** `db`
+- **Username:** `postgres`
+- **Password:** `postgres`
+- **Database:** `ec_mock`
 
 ## Stopping the Application
 
@@ -652,11 +685,29 @@ Key dependencies:
 
 ```bash
 cd frontend
-npm run build
-npm start
+pnpm run build
+pnpm start
 ```
 
 ### Database Access
+
+#### Using Adminer (Web UI)
+
+The easiest way to access and manage the database is through Adminer:
+
+1. Open http://localhost:8080 in your browser
+2. Login with:
+   - System: `PostgreSQL`
+   - Server: `db`
+   - Username: `postgres`
+   - Password: `postgres`
+   - Database: `ec_mock`
+
+Adminer provides a user-friendly interface to:
+- Browse tables and data
+- Run SQL queries
+- Export/import data
+- Manage database structure
 
 #### Connect to PostgreSQL via CLI
 
@@ -690,12 +741,49 @@ SELECT id, name, stock FROM products WHERE stock < 10;
 
 #### Reset Database
 
-To reset the database with fresh sample data:
+To reset the database with fresh sample data (all data will be recreated from `init.sql`):
 
 ```bash
 cd infra
 docker-compose down -v
 docker-compose up -d
+```
+
+The `init.sql` script automatically creates:
+- Database schema (users, products, orders, order_items tables)
+- 4 demo users (admin, demo-user, john, jane) - Password: `password123`
+- 300 products across various categories
+- 3 sample orders with items
+
+#### Schema Changes
+
+This project uses `init.sql` for database schema management. To modify the schema:
+
+1. Edit `infra/db/init.sql`
+2. Reset the database:
+   ```bash
+   cd infra
+   docker-compose down -v
+   docker-compose up -d
+   ./seed-db-simple.sh
+   ```
+
+**Export/Import Database:**
+
+If you need to backup or migrate data:
+
+```bash
+# Export full database
+docker exec ec-mock-db pg_dump -U postgres -d ec_mock > backup.sql
+
+# Export schema only
+docker exec ec-mock-db pg_dump -U postgres -d ec_mock --schema-only > schema.sql
+
+# Export data only
+docker exec ec-mock-db pg_dump -U postgres -d ec_mock --data-only > data.sql
+
+# Import database
+docker exec -i ec-mock-db psql -U postgres -d ec_mock < backup.sql
 ```
 
 ### Code Structure
@@ -743,6 +831,16 @@ docker-compose logs
 docker ps -a
 ```
 
+**Problem:** Backend container shows "exec format error"
+
+**Solution:** Rebuild the backend container:
+```bash
+cd infra
+docker-compose down
+docker-compose build --no-cache backend
+docker-compose up -d
+```
+
 ### Frontend Issues
 
 **Problem:** Cannot connect to backend API
@@ -758,7 +856,7 @@ docker ps -a
 ```bash
 cd frontend
 rm -rf node_modules package-lock.json
-npm install
+pnpm install
 ```
 
 ### Backend Issues
@@ -826,23 +924,36 @@ Planned features for future development:
 
 ### Manual Testing
 
-1. **Product Browsing:**
+1. **User Authentication:**
+   - Visit http://localhost:3000/login
+   - Login with username: `demo-user`, password: `password123`
+   - Verify redirect to home page
+   - Check user menu in header
+   - Test logout functionality
+
+2. **Product Browsing:**
    - Visit http://localhost:3000
    - Navigate to Products page
    - Click on a product to view details
-   - Test pagination controls
+   - Test pagination controls (300 products available)
 
-2. **Cart Management:**
+3. **Cart Management:**
    - Add products to cart
    - View cart page
    - Verify cart badge updates
    - Check total calculation
 
-3. **Order Placement:**
+4. **Order Placement:**
    - Proceed to checkout
    - Place an order
    - Verify success message
-   - Check database for order record
+   - Check order history in profile
+
+5. **User Profile:**
+   - Click on username in header
+   - Update profile information
+   - Change password
+   - View order history
 
 ### API Testing
 

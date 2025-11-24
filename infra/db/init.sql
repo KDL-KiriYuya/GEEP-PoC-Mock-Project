@@ -16,9 +16,12 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_username ON users(username);
 
 -- Insert sample users (password: "password123" for all)
+-- Hash generated with: docker exec ec-mock-backend python -c "from app.core.security import get_password_hash; print(get_password_hash('password123'))"
 INSERT INTO users (email, username, hashed_password, full_name, is_superuser) VALUES
-('admin@example.com', 'admin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYqVqN4e6.u', 'Admin User', TRUE),
-('user@example.com', 'demo-user', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYqVqN4e6.u', 'Demo User', FALSE);
+('admin@example.com', 'admin', '$2b$12$Gm8Vdtwcjg9hv2fiJIqVlu9aZwbHOVmhk/bVujhz.JlXeeE3o1bc6', 'Admin User', TRUE),
+('user@example.com', 'demo-user', '$2b$12$Gm8Vdtwcjg9hv2fiJIqVlu9aZwbHOVmhk/bVujhz.JlXeeE3o1bc6', 'Demo User', FALSE),
+('john@example.com', 'john', '$2b$12$Gm8Vdtwcjg9hv2fiJIqVlu9aZwbHOVmhk/bVujhz.JlXeeE3o1bc6', 'John Doe', FALSE),
+('jane@example.com', 'jane', '$2b$12$Gm8Vdtwcjg9hv2fiJIqVlu9aZwbHOVmhk/bVujhz.JlXeeE3o1bc6', 'Jane Smith', FALSE);
 
 -- Create products table
 CREATE TABLE products (
@@ -91,3 +94,20 @@ BEGIN
         VALUES (product_name, description, price, stock, image_url, category);
     END LOOP;
 END $$;
+
+
+-- Insert sample orders
+INSERT INTO orders (user_id, total_amount, status) VALUES
+('demo-user', 125000, 'paid'),
+('demo-user', 8000, 'paid'),
+('john', 50000, 'paid');
+
+-- Insert sample order items
+INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES
+(1, 1, 1, 120000),
+(1, 2, 1, 3000),
+(1, 3, 1, 2000),
+(2, 3, 1, 8000),
+(3, 6, 1, 45000),
+(3, 7, 1, 3500),
+(3, 8, 1, 1500);
