@@ -26,3 +26,19 @@ class ProductListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ProductCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    price: int
+    stock: int
+    image_url: str = "https://placehold.co/400x400/e8e8e8/666666?text=Product+Image"
+
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[int] = None
+    stock: Optional[int] = None
+    image_url: Optional[str] = None

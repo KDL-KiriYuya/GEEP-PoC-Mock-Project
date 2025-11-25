@@ -101,7 +101,7 @@ export default function ProductDetailPage() {
         {/* Product Image */}
         <div>
           <img 
-            src={product.image_url} 
+            src="/product~image.png" 
             alt={product.name}
             className="w-full rounded-lg shadow-lg"
           />

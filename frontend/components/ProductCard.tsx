@@ -9,10 +9,16 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  // Use local image for all products
+  const imageUrl = '/product~image.png';
+  
+  // BUG-FE-004: Out-of-stock products are displayed and "Add to Cart" button is enabled
+  // Should disable the button when product.stock === 0
+  
   return (
     <div className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
       <img 
-        src={product.image_url} 
+        src={imageUrl} 
         alt={product.name}
         className="w-full h-48 object-cover rounded mb-4"
       />
@@ -31,6 +37,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         >
           View Details
         </Link>
+        {/* BUG-FE-004: Button should be disabled when stock is 0 */}
         <button 
           className="flex-1 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
           onClick={() => onAddToCart(product)}

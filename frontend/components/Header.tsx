@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 interface HeaderProps {
@@ -10,28 +10,41 @@ interface HeaderProps {
 
 export default function Header({ cartItemCount }: HeaderProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [username, setUsername] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
-    if (token) {
-      setIsLoggedIn(true)
-      // Fetch user info
-      fetch('http://localhost:8000/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-        .then(res => res.json())
-        .then(data => setUsername(data.username))
-        .catch(() => {
-          // Token invalid, clear it
-          localStorage.removeItem('access_token')
-          setIsLoggedIn(false)
+    const checkAuth = () => {
+      const token = localStorage.getItem('access_token')
+      if (token) {
+        setIsLoggedIn(true)
+        // Fetch user info
+        fetch('http://localhost:8000/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         })
+          .then(res => res.json())
+          .then(data => {
+            setUsername(data.username)
+            setIsAdmin(data.is_superuser || false)
+          })
+          .catch(() => {
+            // Token invalid, clear it
+            localStorage.removeItem('access_token')
+            setIsLoggedIn(false)
+            setIsAdmin(false)
+          })
+      } else {
+        setIsLoggedIn(false)
+        setIsAdmin(false)
+      }
     }
-  }, [])
+    
+    checkAuth()
+  }, [pathname])
 
   const handleLogout = () => {
     localStorage.removeItem('access_token')
@@ -66,32 +79,45 @@ export default function Header({ cartItemCount }: HeaderProps) {
             Products
           </Link>
           
-          <Link href="/cart" style={{
-            padding: '0.5rem 1rem',
-            position: 'relative',
-            transition: 'opacity 0.2s'
-          }}>
-            Cart
-            {cartItemCount > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '0',
-                right: '0',
-                backgroundColor: '#e74c3c',
-                color: 'white',
-                borderRadius: '50%',
-                width: '20px',
-                height: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.75rem',
-                fontWeight: 'bold'
-              }}>
-                {cartItemCount}
-              </span>
-            )}
-          </Link>
+          {!isAdmin && (
+            <Link href="/cart" style={{
+              padding: '0.5rem 1rem',
+              position: 'relative',
+              transition: 'opacity 0.2s'
+            }}>
+              Cart
+              {cartItemCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '0',
+                  right: '0',
+                  backgroundColor: '#e74c3c',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: '20px',
+                  height: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold'
+                }}>
+                  {cartItemCount}
+                </span>
+              )}
+            </Link>
+          )}
+          
+          {isAdmin && (
+            <Link href="/admin/products" style={{ 
+              padding: '0.5rem 1rem',
+              backgroundColor: '#9b59b6',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s'
+            }}>
+              Manage Products
+            </Link>
+          )}
 
           {isLoggedIn ? (
             <>

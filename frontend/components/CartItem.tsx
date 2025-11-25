@@ -32,7 +32,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
       {/* Product Image */}
       <div style={{ flexShrink: 0 }}>
         <img
-          src={item.image_url}
+          src="/product~image.png"
           alt={item.name}
           style={{
             width: '100px',

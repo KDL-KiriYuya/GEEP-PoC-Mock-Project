@@ -111,3 +111,10 @@ INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES
 (3, 6, 1, 45000),
 (3, 7, 1, 3500),
 (3, 8, 1, 1500);
+
+-- Update all product images to use the fixed product image
+UPDATE products SET image_url = '/product~image.png';
+
+-- Create some out-of-stock products for testing the bug
+-- BUG-BE-004: Products with stock=0 are still displayed in the product list
+UPDATE products SET stock = 0 WHERE id IN (5, 15, 25, 35, 45, 55, 65, 75, 85, 95);
