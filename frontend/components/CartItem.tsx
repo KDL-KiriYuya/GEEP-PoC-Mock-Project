@@ -11,11 +11,9 @@ interface CartItemProps {
 export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
   // BUG-FE-002: No validation on quantity input - allows zero and negative values
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newQuantity = parseInt(e.target.value, 10)
-    // Bug: No validation here - should check if newQuantity > 0
-    if (!isNaN(newQuantity)) {
-      onUpdateQuantity(item.product_id, newQuantity)
-    }
+    const raw = Number(e.target.value);
+    const clamped = Math.max(1, Number.isFinite(raw) ? Math.floor(raw) : 1);
+    onUpdateQuantity(item.product_id, clamped);
   }
 
   const subtotal = item.price * item.quantity

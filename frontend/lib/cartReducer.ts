@@ -66,8 +66,10 @@ export function cartReducer(state: Cart, action: CartAction): Cart {
     case 'UPDATE_QUANTITY': {
       const { product_id, quantity } = action.payload;
       // BUG-FE-002: No validation on quantity - allows zero and negative values
+      const safeQuantity = Number.isFinite(quantity) ? Math.floor(quantity) : 1;
+      const clampedQuantity = Math.max(1, safeQuantity);
       const newItems = state.items.map((item) =>
-        item.product_id === product_id ? { ...item, quantity } : item
+        item.product_id === product_id ? { ...item, quantity: clampedQuantity } : item
       );
       const totals = calculateCartTotals(newItems);
       return {
