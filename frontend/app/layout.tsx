@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import LayoutWrapper from '@/components/LayoutWrapper'
+import { CartProvider } from '@/context/CartContext'
 
 export const metadata: Metadata = {
   title: 'E-Commerce Mock Site',
@@ -15,9 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <LayoutWrapper>
-          {children}
-        </LayoutWrapper>
+        <CartProvider>
+          <LayoutWrapper>
+            {children}
+          </LayoutWrapper>
+        </CartProvider>
       </body>
     </html>
   )
