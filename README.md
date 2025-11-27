@@ -81,8 +81,34 @@ ec-mock/
 Before you begin, ensure you have the following installed:
 
 - **Docker** (20.10+) and **Docker Compose** (2.0+)
-- **Node.js** (18+) and **npm** (9+)
+- **Node.js** (18+) and **npm** (9+) or **pnpm** (8+)
 - **Python** 3.11+ (optional, for local backend development without Docker)
+
+### Windows Users
+
+If you're using Windows, please note the following:
+
+- **Use WSL2 (Windows Subsystem for Linux)** for the best Docker performance and compatibility
+  - Install WSL2: https://docs.microsoft.com/en-us/windows/wsl/install
+  - Install Docker Desktop for Windows with WSL2 backend enabled
+  
+- **Line Endings**: Git may convert line endings (LF to CRLF) which can cause issues with shell scripts and Docker
+  - Configure Git to use LF line endings:
+    ```bash
+    git config --global core.autocrlf false
+    git config --global core.eol lf
+    ```
+  - If you already cloned the repository, re-clone it after changing the Git configuration
+
+- **Path Separators**: Use forward slashes (`/`) in commands, not backslashes (`\`)
+  - Example: `cd infra` not `cd infra\`
+
+- **PowerShell vs Command Prompt**: Some commands may work differently
+  - We recommend using **Git Bash**, **WSL2**, or **PowerShell** for running commands
+  - Avoid using the legacy Command Prompt (cmd.exe)
+
+- **Docker Volume Performance**: If running Docker Desktop on Windows (not WSL2), database operations may be slower
+  - For best performance, clone the project inside WSL2 and run all commands from there
 
 ## Quick Start
 
@@ -739,7 +765,7 @@ SELECT id, name, stock FROM products WHERE stock < 10;
 \q
 ```
 
-#### Reset Database
+#### Reset Database and Reinitialize Data
 
 To reset the database with fresh sample data (all data will be recreated from `init.sql`):
 
@@ -749,11 +775,31 @@ docker-compose down -v
 docker-compose up -d
 ```
 
+**What happens during initialization:**
+
 The `init.sql` script automatically creates:
 - Database schema (users, products, orders, order_items tables)
 - 4 demo users (admin, demo-user, john, jane) - Password: `password123`
 - 300 products across various categories
 - 3 sample orders with items
+- Updates all product images to `/product~image.png`
+- Sets 10 products (ID: 5, 15, 25, 35, 45, 55, 65, 75, 85, 95) to stock=0 for testing BUG-BE-004
+
+**Manual data initialization (if needed):**
+
+If you need to manually run the initialization script:
+
+```bash
+# Method 1: Using docker exec
+docker exec -i ec-mock-db psql -U postgres -d ec_mock < infra/db/init.sql
+
+# Method 2: Connect to database and run script
+docker exec -it ec-mock-db psql -U postgres -d ec_mock
+\i /docker-entrypoint-initdb.d/init.sql
+\q
+```
+
+**Note:** The `init.sql` script is automatically executed when the database container is first created. If you need to re-run it, you must first drop and recreate the database or use `docker-compose down -v` to remove the volume.
 
 #### Schema Changes
 
@@ -765,7 +811,6 @@ This project uses `init.sql` for database schema management. To modify the schem
    cd infra
    docker-compose down -v
    docker-compose up -d
-   ./seed-db-simple.sh
    ```
 
 **Export/Import Database:**
@@ -886,6 +931,49 @@ cd infra
 docker-compose down -v
 docker-compose up -d
 ```
+
+### Windows-Specific Issues
+
+**Problem:** Line ending errors in Docker containers
+```
+/bin/bash^M: bad interpreter: No such file or directory
+```
+
+**Solution:** This is caused by CRLF line endings. Fix Git configuration and re-clone:
+```bash
+git config --global core.autocrlf false
+git config --global core.eol lf
+# Re-clone the repository
+```
+
+**Problem:** `lsof` command not found on Windows
+
+**Solution:** Use alternative commands to check ports:
+```powershell
+# PowerShell - Check port 8000
+Get-NetTCPConnection -LocalPort 8000
+
+# PowerShell - Check port 5432
+Get-NetTCPConnection -LocalPort 5432
+
+# Command Prompt
+netstat -ano | findstr :8000
+netstat -ano | findstr :5432
+```
+
+**Problem:** Docker volumes are slow on Windows
+
+**Solution:** 
+- Use WSL2 instead of Docker Desktop's Windows filesystem
+- Clone the project inside WSL2 (`/home/username/projects/`)
+- Run all commands from WSL2 terminal
+
+**Problem:** `pnpm install` fails on Windows
+
+**Solution:** 
+- Run PowerShell or Command Prompt as Administrator
+- Or use npm instead: `npm install`
+- Or use WSL2 for better compatibility
 
 ## Known Issues
 
